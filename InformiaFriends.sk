@@ -1,0 +1,576 @@
+# ██╗███╗   ██╗███████╗ ██████╗ ██████╗ ███╗   ███╗██╗ █████╗ 
+# ██║████╗  ██║██╔════╝██╔═══██╗██╔══██╗████╗ ████║██║██╔══██╗
+# ██║██╔██╗ ██║█████╗  ██║   ██║██████╔╝██╔████╔██║██║███████║
+# ██║██║╚██╗██║██╔══╝  ██║   ██║██╔══██╗██║╚██╔╝██║██║██╔══██║
+# ██║██║ ╚████║██║     ╚██████╔╝██║  ██║██║ ╚═╝ ██║██║██║  ██║
+# ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═╝
+# ███████╗██████╗ ██╗███████╗███╗   ██╗██████╗ ███████╗       
+# ██╔════╝██╔══██╗██║██╔════╝████╗  ██║██╔══██╗██╔════╝       
+# █████╗  ██████╔╝██║█████╗  ██╔██╗ ██║██║  ██║███████╗       
+# ██╔══╝  ██╔══██╗██║██╔══╝  ██║╚██╗██║██║  ██║╚════██║       
+# ██║     ██║  ██║██║███████╗██║ ╚████║██████╔╝███████║       
+# ╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝       
+
+# Author: Informia Projects
+# Version: 1.0 (First Release)
+
+
+# -----------> Kütüphane <-------------
+
+
+import:
+    org.bukkit.Bukkit
+on load:
+    YAML("enable")
+on unload:
+    YAML("disable")
+
+
+# -----------> InformiaFriendsAPI <-------------
+
+
+on placeholderapi placeholder request for the prefix "informiafriends":
+    if the identifier is "friends":
+        set the result to "%{IF::arkadaslar::%player%::*}%"
+    if the identifier is "maxfriends":
+        set the result to "%yaml value ""Settings.max-friend-size"" from ""config""%"
+
+
+# -----------> Konfigürasyonlar <-------------
+
+
+function YAML(s: text):
+    if {_s} = "enable":
+        load yaml "plugins/InformiaFriends/About/plugin.yml" as "plugin"
+        if yaml "plugin" is empty:
+
+            set yaml value "Release Date" from "plugin" to "26 March 2022"
+            
+            set yaml value "Information.Name" from "plugin" to "Informia Friends"
+            set yaml value "Information.Author" from "plugin" to "Project Informia 2022™"
+            set yaml value "Information.Version" from "plugin" to "1.0"
+
+            set the comments of yaml node "Release Date" from "plugin" to "" and "Eklentinin ilk sürümünün çıkış tarihidir." and ""
+            set the comments of yaml node "Information" from "plugin" to "" and "Eklentinin bütünü ve geneli hakkında bilgiler." and ""
+
+            save yaml "plugin"
+        
+        load yaml "plugins/InformiaFriends/config.yml" as "config"
+        if yaml "config" is empty:
+
+            set yaml value "Settings.max-friend-size" from "config" to 44
+            set yaml value "Settings.max-request-size" from "config" to 44
+
+            set yaml value "Requests.Accept" from "config" to "&a&l[KABUL ET]"
+            set yaml value "Requests.Ignore" from "config" to "&c&l[REDDET]"
+
+            set yaml value "Chat Format.Player-To-Friend" from "config" to "&3Arkadaş Mesaj &8» &7[Sen -> %%friend%%]: &e%%message%%"
+            set yaml value "Chat Format.Message-From-Player" from "config" to "&3Arkadaş Mesaj &8» &7[%%from%% -> Sen]: &e%%message%%"
+            set yaml value "Chat Format.Player-Announce-Friends" from "config" to "&3Arkadaş Mesaj &8» &7[%%player%% -> &bDuyuru&7]: &e%%message%%"
+
+            set the comments of yaml node "Settings" from "config" to "" and "Eklentinin genel olarak ayarları burada sıralanır. Örneğin" and "'max-friend-size' kalıbı oyuncunun ekleyebileceği en fazla" and "arkadaş sayısını gösterir." and ""
+            set the comments of yaml node "Requests" from "config" to "" and "Tıklanabilir istek mesajlarıdır. Bunları da istediğiniz" and "gibi değiştirebilirsiniz. Sorun olmaz :)" and ""
+            set the comments of yaml node "Chat Format" from "config" to "" and "Oyuncuların kendileri arasında kullandıkları mesajlaşma" and "biçimine göre bazı formatlar kullanılır. Onları buradan" and "değiştirebilir veya ayarlayabilirsiniz." and ""
+
+            save yaml "config"
+
+        load yaml "plugins/InformiaFriends/messages.yml" as "messages"
+        if yaml "messages" is empty:
+
+            set yaml value "Prefix" from "messages" to "&3InformiaFriends &8»"
+
+            set yaml value "Messages.no-permission" from "messages" to "&cBunun için yetkin yok."
+            set yaml value "Messages.wrong-usage" from "messages" to "&cHatalı kullanım. &e/ark yardım &cile yardım alabilirsiniz."
+            set yaml value "Messages.reload-successfully" from "messages" to "&eEklenti &bdosyaları &eve &bayarları &ebaşarıyla &ayeniden başlatıldı&e."
+            set yaml value "Messages.plugin-was-disabled" from "messages" to "&eEklenti sorunsuz bir şekilde &c&lKAPALI &eolarak ayarlandı, artık çalışamaz."
+            set yaml value "Messages.player-isnt-online" from "messages" to "&cAradığınız &e%%player%% &cadlı oyuncu oyunda değil."
+            set yaml value "Messages.you-cant-add-yourself" from "messages" to "&cKendini arkadaş olarak ekleyemezsin."
+            set yaml value "Messages.you-cant-delete-yourself" from "messages" to "&cKendini arkadaşlıktan çıkaramazsın."
+            set yaml value "Messages.you-cant-accept-yourself" from "messages" to "&cKendi kendine arkadaşlık isteğini kabul edemezsin."
+            set yaml value "Messages.you-cant-ignore-yourself" from "messages" to "&cKendi kendine arkadaşlık isteğini reddedemezsin."
+            set yaml value "Messages.you-cant-message-yourself" from "messages" to "&cKendine mesaj gönderemezsin."
+            set yaml value "Messages.announce-status-changed" from "messages" to "&eHep duyuru seçeneği &r%%status%% &eolarak değiştirildi."
+            set yaml value "Messages.friend-request-send" from "messages" to "&eSen &b%%player%% &eadlı oyuncuya arkadaşlık isteği gönderdin."
+            set yaml value "Messages.get-friend-request" from "messages" to "&b%%player%% &eadlı oyuncu sana arkadaşlık isteği gönderdi."
+            set yaml value "Messages.you-are-already-friends" from "messages" to "&cZaten bu oyuncu ile arkadaşsınız."
+            set yaml value "Messages.player-friend-list-is-full" from "messages" to "&cBu oyuncunun arkadaş listesi ağzına kadar dolu."
+            set yaml value "Messages.your-friend-list-is-full" from "messages" to "&cArkadaşlık listen ağzına kadar dolu. Yer aç biraz!"
+            set yaml value "Messages.you-are-not-friends" from "messages" to "&e%%player%% &cile henüz arkadaş değilsiniz."
+            set yaml value "Messages.you-deleted-player-from-friends" from "messages" to "&b%%player%% &eadlı oyuncu arkadaşlıktan &cçıkarıldı&e."
+            set yaml value "Messages.player-deleted-you-from-friends" from "messages" to "&b%%player%% &eadlı oyuncu seni arkadaşlıktan &cçıkardı&e."
+            set yaml value "Messages.no-friend-request" from "messages" to "&cBu oyuncu sana arkadaşlık isteği yollamamış."
+            set yaml value "Messages.not-enough-friends" from "messages" to "&cYeteri kadar arkadaşın yok. (En az 2 olmalı.)"
+            set yaml value "Messages.friend-request-accept" from "messages" to "&b%%player%% &eadlı oyuncunun arkadaşlık isteğini &akabul ettin&e."
+            set yaml value "Messages.your-request-accepted" from "messages" to "&b%%player%% &eadlı oyuncu arkadaşlık isteğini &akabul etti&e."
+            set yaml value "Messages.friend-request-ignore" from "messages" to "&b%%player%% &eadlı oyuncunun arkadaşlık isteğini &creddettin&e."
+            set yaml value "Messages.your-request-ignored" from "messages" to "&b%%player%% &eadlı oyuncu arkadaşlık isteğini &creddetti&e."
+            set yaml value "Messages.you-dont-have-any-friend" from "messages" to "&cHenüz hiç arkadaşın yok :("
+            set yaml value "Messages.you-dont-have-any-request" from "messages" to "&cHenüz hiç arkadaşlık isteğin yok :("
+            set yaml value "Messages.request-list-is-full" from "messages" to "&cBu oyuncunun istek listesi ağzına kadar dolu. Sonra tekrar denersin :/"
+
+            set the comments of yaml node "Prefix" from "messages" to "" and "Eklentide kullanılan mesajların başına gelen yazıdır." and ""
+            set the comments of yaml node "Messages" from "messages" to "" and "Eklentide kullanılan bütün mesajlardır. Değiştirebilirsiniz." and ""
+
+            save yaml "messages"
+
+        load yaml "plugins/InformiaFriends/menu.yml" as "gui"
+        if yaml "gui" is empty:
+
+            set yaml value "GUI.0.Name" from "gui" to "&8Menü &7> Arkadaşlarım"
+            set yaml value "GUI.0.Size" from "gui" to 6
+
+            set yaml value "GUI.0.Items.Player Head.ID" from "gui" to " &3%%player_name%%"
+            add "" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add " &7Bu oyuncu senin oyun" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add " &7içerisindeki arkadaşındır." to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add "" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add " &7Durum: &r%%player_status%%" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add " &7Son Giriş: &r%%player_last_entry%%" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add "" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            add "&e&nArkadaşlıktan çıkarmak için tıkla!" to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+            set yaml value "GUI.0.Items.Player Head.Glowing" from "gui" to true
+
+            set yaml value "GUI.0.Items.Friend Requests.ID" from "gui" to " &3Arkadaşlık İstekleri"
+            set yaml value "GUI.0.Items.Friend Requests.Slot" from "gui" to 49
+            add "" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add " &7Buradan size gelen" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add " &7arkadaşlık isteklerini" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add " &7görebilirsiniz." to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add "" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add " &7İstekler: &r%%friend_requests%%" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add "" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            add " &e&nGörüntülemek için tıkla!" to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+            set yaml value "GUI.0.Items.Friend Requests.Item" from "gui" to hopper
+            set yaml value "GUI.0.Items.Friend Requests.Glowing" from "gui" to true
+
+            set yaml value "GUI.0.Items.Glass Pane.ID" from "gui" to "&f"
+            set yaml value "GUI.0.Items.Glass Pane.Item" from "gui" to black stained glass pane
+            set yaml value "GUI.0.Items.Glass Pane.Glowing" from "gui" to true
+
+
+            set yaml value "GUI.1.Name" from "gui" to "&8Menü &7> İstekler"
+            set yaml value "GUI.1.Size" from "gui" to 6
+
+            set yaml value "GUI.1.Items.Request.ID" from "gui" to " &3%%player_name%%"
+            add "" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7Eğer bu oyuncunun" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7arkadaşlık isteğini" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7kabul edeceksen aşağıdaki" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7gibi söyleneni yapın." to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add "" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7İstek Saati: &r%%request_time%%" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &7Bütün Arkadaşları: &r%%player_friends%%" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add "" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &e&nOnaylamak için sol tıklayın!" to yaml list "GUI.1.Items.Request.Lore" from "gui"
+            add " &c&nReddetmek için sağ tıklayın" to yaml list "GUI.1.Items.Request.Lore" from "gui"            
+            set yaml value "GUI.1.Items.Request.Item" from "gui" to paper
+            set yaml value "GUI.1.Items.Request.Glowing" from "gui" to true
+
+            set yaml value "GUI.1.Items.All Friends.ID" from "gui" to " &3Arkadaşlarının Listesi"
+            set yaml value "GUI.1.Items.All Friends.Slot" from "gui" to 49
+            add "" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &7Tüm arkadaşlarını olduğu" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &7bir listedir. Buradan kendi" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &7arkadaşlarını görebilir ve" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &7yönetebilirsin." to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add "" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &7Arkadaşların: &r%%all_friends%%" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add "" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            add " &e&nGörüntülemek için tıkla!" to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+            set yaml value "GUI.1.Items.All Friends.Item" from "gui" to diamond
+            set yaml value "GUI.1.Items.All Friends.Glowing" from "gui" to true
+
+            set yaml value "GUI.1.Items.Glass Pane.ID" from "gui" to "&f"
+            set yaml value "GUI.1.Items.Glass Pane.Item" from "gui" to black stained glass pane
+            set yaml value "GUI.1.Items.Glass Pane.Glowing" from "gui" to true
+
+            set the comments of yaml node "GUI" from "gui" to "" and "Eklentide kullanılan arayüz ve menülerdir. Kendine" and "özel PlaceHolderAPI ile ekstra bir güzellik sağlıyor.." and ""
+            set the comments of yaml node "GUI.0" from "gui" to "" and "Arkadaşların olduğu listeyi tanımlayan arayüzdür." and ""
+            set the comments of yaml node "GUI.1" from "gui" to "" and "Arkadaş isteklerinin olduğu menüyü tanımlayan arayüzdür." and ""
+
+            save yaml "gui"
+        
+        Bukkit.getConsoleSender().sendMessage("&b[InformiaFriends] &fThe plugin was successfully &aloaded!")
+        Bukkit.getConsoleSender().sendMessage("&b[InformiaFriends] &fThanks for using it! &c<3")    
+
+    if {_s} = "unload":
+        unload yaml "config"
+        unload yaml "messages"
+        Bukkit.getConsoleSender().sendMessage("&b[InformiaFriends] &fThe plugin was successfully &cdisabled!")
+        Bukkit.getConsoleSender().sendMessage("&b[InformiaFriends] &fThanks for using it! &c<3")    
+
+    if {_s} = "reload":
+        unload yaml "config"
+        unload yaml "messages"
+        load yaml "plugins/InformiaFriends/config.yml" as "config"
+        load yaml "plugins/InformiaFriends/messages.yml" as "messages"
+
+# -----------> Ön Ayarlar <-------------
+
+
+on first join:
+    delete {IF::requests::%player%::*}
+    set {IF::arkadaslar::%player%} to 0
+    set {IF::hepDuyuru::%player%} to false
+
+on join:
+    set {IF::lastEntry::%player%} to now
+
+
+# -----------> Genel Kodlar <------------
+
+
+command /arkadaşlarım:
+    aliases: friends, arkadaslarim, arkadaşlarim, arkadaslarım, myfriends
+    trigger:
+        friendsGUI(player)
+
+command /arkadaş [<text>] [<text>] [<text>]:
+    aliases: arkadas, fr, friend, friends, ark
+    trigger:
+        if arg-1 isn't set:
+            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "help" or "yardım" or "yardim":
+            send ""
+            send "            &e&m-----&r &6&lARKADAŞLIK &e&m-----" and ""
+            send " &6/arkadaş ekle <oyuncu> &8- &eOyuncuyu arkadaş ekler."
+            send " &6/arkadaş sil <oyuncu> &8- &eOyuncuyu arkadaştan siler."
+            send " &6/arkadaş kabul <oyuncu> &8- &eArkadaşlık isteğini kabul eder."
+            send " &6/arkadaş reddet <oyuncu> &8- &eArkadaşlık isteğini reddeder."
+            send " &6/arkadaş mesaj <oyuncu> <mesaj> &8- &eArkadaşına mesaj yollar."
+            send " &6/arkadaş duyuru <mesaj> &8- &eBütün arkadaşlara mesaj yollar."
+            send " &6/arkadaş hepduyuru &8- &eHer mesajı duyuru olarak yollar."
+            send " &6/arkadaş istekler &8- &eArkadaş isteklerini görüntüler."
+            send " &6/arkadaş yardım &8- &eBu mesajları görüntüler."
+            send ""
+            if player has permission "informiafriends.commands":
+                send " &6/arkadaş yenile &8- &eEklentiyi ve ayarları yeniler."
+                send " &6/arkadaş kapat &8- &eEklentiyi doğrudan manuel kapatır."
+                send ""
+            send "&eBütün arkadaşlarını görmek için &d/arkadaşlarım &eyazabilirsin."
+            send ""
+            send "            &e&m-----&r &6&lARKADAŞLIK &e&m-----" and ""
+        if arg-1 is "ekle" or "add" or "invite" or "davet":
+            if arg-2 is set:
+                if arg-3 isn't set:
+                    set {_b} to arg-2 parsed as an offline player
+                    if {_b} isn't online:
+                        set {_msg} to yaml value "Messages.player-isnt-online" from "messages"
+                        replace "%%player%%" in {_msg} with "%arg-2%"
+                        send "%yaml value ""Prefix"" from ""messages""% %{_msg}%"
+                    else:
+                        if arg-2 = player:
+                            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-cant-add-yourself"" from ""messages""%"
+                        else:
+                            addFriend(player, {_b})
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "sil" or "çıkar" or "cikar" or "delete" or "remove":
+            if arg-2 is set:
+                if arg-3 isn't set:
+                    set {_b} to arg-2 parsed as an offline player
+                    if {_b} isn't online:
+                        set {_msg} to yaml value "Messages.player-isnt-online" from "messages"
+                        replace "%%player%%" in {_msg} with "%{_b}%"
+                        send "%yaml value ""Prefix"" from ""messages""% %{_msg}%"
+                    else:
+                        if arg-2 = player:
+                            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-cant-delete-yourself"" from ""messages""%"
+                        else:
+                            deleteFriend(player, {_b})
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "kabul" or "accept" or "agree":
+            if arg-2 is set:
+                if arg-3 isn't set:
+                    set {_b} to arg-2 parsed as an offline player
+                    if {_b} isn't online:
+                        set {_msg} to yaml value "Messages.player-isnt-online" from "messages"
+                        replace "%%player%%" in {_msg} with "%arg-2%"
+                        send "%yaml value ""Prefix"" from ""messages""% %{_msg}%"
+                    else:
+                        if arg-2 = player:
+                            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-cant-accept-yourself"" from ""messages""%"
+                        else:
+                            acceptRequest(player, {_b})
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "reddet" or "ignore" or "decline":
+            if arg-2 is set:
+                if arg-3 isn't set:
+                    set {_b} to arg-2 parsed as an offline player
+                    if {_b} isn't online:
+                        set {_msg} to yaml value "Messages.player-isnt-online" from "messages"
+                        replace "%%player%%" in {_msg} with "%{_b}%"
+                        send "%yaml value ""Prefix"" from ""messages""% %{_msg}%"
+                    else:
+                        if arg-2 = player:
+                            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-cant-ignore-yourself"" from ""messages""%"
+                        else:
+                            ignoreRequest(player, {_b})
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "mesaj" or "msj" or "message" or "msg":
+            if arg-2 and arg-3 isn't set:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                set {_b} to arg-2 parsed as an offline player
+                if {_b} isn't online:
+                    set {_msg} to yaml value "Messages.player-isnt-online" from "messages"
+                    replace "%%player%%" in {_msg} with "%{_b}%"
+                    send "%yaml value ""Prefix"" from ""messages""% %{_msg}%"
+                else:
+                    if arg-2 = player:
+                        send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-cant-message-yourself"" from ""messages""%"
+                    else:
+                        messageFriend(player, {_b}, "%arg-3%")
+        if arg-1 is "duyuru" or "announce":
+            if arg-2 is set:
+                if arg-3 isn't set:
+                    announceFriends(player, "%arg-2%")
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "hepduyuru" or "alwaysannounce":
+            if arg-2 and arg-3 isn't set:
+                if {IF::hepDuyuru::%player%} = false:
+                    set {IF::hepDuyuru::%player%} to true
+                    replaceText(player, "Messages.announce-status-changed", "messages", "%%status%%", "&a&lAÇIK", "yes")
+                else:
+                    set {IF::hepDuyuru::%player%} to false
+                    replaceText(player, "Messages.announce-status-changed", "messages", "%%status%%", "&c&lKAPALI", "yes")
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "istekler" or "request" or "requests":
+            if arg-2 and arg-3 isn't set:
+                requestsGUI(player)
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+        if arg-1 is "reload" or "yenile" or "restart":
+            if player has permission "informiafriends.reload":
+                if arg-2 and arg-3 isn't set:
+                    YAML("reload")
+                    wait a second
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.reload-successfully"" from ""messages""%"
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.no-permission"" from ""messages""%"
+        if arg-1 is "kapat" or "close" or "disable" or "shutdown":
+            if player has permission "informiafriends.shutdown":
+                if arg-2 and arg-3 isn't set:
+                    shutdown(player)
+                else:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.wrong-usage"" from ""messages""%"
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.no-permission"" from ""messages""%"
+
+
+# -----------> Fonksiyonlar <------------
+
+function shutdown(p: player):
+    Bukkit.getConsoleSender().sendMessage("&b[InformiaFriends] &fThe plugin has been shutdowned by &c%{_p}%")
+    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.plugin-was-disabled"" from ""messages""%" to {_p}
+    wait 1 second
+    YAML("disable")
+    execute console command "sk disable InformiaFriends.sk"
+
+function replaceText(p: player, value: text, from: text, replace: text, with: text, prefix: text):
+    set {_msg} to yaml value "%{_value}%" from "%{_from}%"
+    replace "%{_replace}%" in {_msg} with "%{_with}%"
+    if {_prefix} = "yes":
+        send "%yaml value ""Prefix"" from ""messages""% %{_msg}%" to {_p}
+    else if {_prefix} = "no":
+        send "%{_msg}%" to {_p}
+
+function addFriend(p: player, b: player):
+    set {_maxArkadas} to yaml value "Settings.max-friend-size" from "config"
+    set {_maxIstek} to yaml value "Settings.max-request-size" from "config"
+    size of {IF::arkadaslar::%{_p}%::*} <= {_maxArkadas}:
+        size of {IF::arkadaslar::%{_b}%::*} <= {_maxArkadas}:
+            if {IF::arkadaslar::%{_p}%::%{_b}%} isn't set:
+                size of {IF::requests::%{_b}%::*} >= {_maxIstek}:
+                    send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.request-list-is-full"" from ""messages""%" to {_p}
+                else:
+                    add {_b} to {IF::requests::%{_p}%::*}
+                    set {IF::requestTime::%{_p}%::%{_b}%} to now
+                    set {IF::arkRequest::%{_p}%} to {_b}
+                    set {IF::arkRequest2::%{_b}%::%{_p}%} to {_p}
+                    replaceText({_p}, "Messages.friend-request-send", "messages", "%%player%%", "%{_b}%", "yes")
+                    replaceText({_b}, "Messages.get-friend-request", "messages", "%%player%%", "%{_p}%", "yes")
+                    send "%yaml value ""Prefix"" from ""messages""% <cmd:/ark kabul %{_p}%>%yaml value ""Requests.Accept"" from ""config""% <cmd:/ark reddet %{_p}%>%yaml value ""Requests.Ignore"" from ""config""%" to {_b}
+            else:
+                send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-are-already-friends"" from ""messages""%" to {_p}
+        else:
+            send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.player-friend-list-is-full"" from ""messages""%" to {_p}
+    else:
+        send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.your-friend-list-is-full"" from ""messages""%" to {_p}
+
+function deleteFriend(p: player, b: player):
+    if {IF::arkadaslar::%{_p}%::%{_b}%} isn't set:
+        replaceText({_p}, "Messages.you-are-not-friends", "messages", "%%player%%", "%{_b}%", "yes")
+    else:
+        delete {IF::arkadaslar::%{_p}%::%{_b}%}
+        delete {IF::arkadaslar::%{_b}%::%{_p}%}
+        replaceText({_p}, "Messages.you-deleted-player-from-friends", "messages", "%%player%%", "%{_b}%", "yes")
+        replaceText({_b}, "Messages.player-deleted-you-from-friends", "messages", "%%player%%", "%{_p}%", "yes")
+
+function acceptRequest(p: player, b: player):
+    if {IF::arkRequest2::%{_p}%::%{_b}%} isn't set:
+        replaceText({_p}, "Messages.no-friend-request", "messages", "%%player%%", "%{_b}%", "yes")
+    else:
+        delete {IF::arkRequest::%{_b}%}
+        delete {IF::arkRequest2::%{_p}%::%{_b}%}
+        remove {_b} from {IF::requests::%{_p}%::*}
+        delete {IF::requestTime::%{_p}%::%{_b}%}
+        set {IF::arkadaslar::%{_p}%::%{_b}%} to {_b}
+        set {IF::arkadaslar::%{_b}%::%{_p}%} to {_p}
+        replaceText({_p}, "Messages.friend-request-accept", "messages", "%%player%%", "%{_b}%", "yes")
+        replaceText({_b}, "Messages.your-request-accepted", "messages", "%%player%%", "%{_p}%", "yes")
+
+function ignoreRequest(p: player, b: player):
+    if {IF::arkRequest2::%{_p}%::%{_b}%} isn't set:
+        replaceText({_p}, "Messages.no-friend-request", "messages", "%%player%%", "%{_b}%", "yes")
+    else:
+        remove {_b} from {IF::requests::%{_p}%::*}
+        delete {IF::requestTime::%{_p}%::%{_b}%}
+        delete {IF::arkRequest::%{_b}%}
+        delete {IF::arkRequest2::%{_p}%::%{_b}%}
+        replaceText({_p}, "Messages.friend-request-ignore", "messages", "%%player%%", "%{_b}%", "yes")
+        replaceText({_b}, "Messages.your-request-ignored", "messages", "%%player%%", "%{_p}%", "yes")
+
+function messageFriend(p: player, b: player, txt: text):
+    if {IF::arkadaslar::%{_p}%::%{_b}%} isn't set:
+        replaceText({_p}, "Messages.you-are-not-friends", "messages", "%%player%%", "%{_b}%", "yes")
+    else:
+        set {_msg} to yaml value "Chat Format.Player-To-Friend" from "config"
+        replace "%%friend%%" in {_msg} with "%{_b}%"
+        replace "%%message%%" in {_msg} with "%{_txt}%"
+        send "%{_msg}%" to {_p}
+        set {_msg2} to yaml value "Chat Format.Message-From-Player" from "config"
+        replace "%%from%%" in {_msg2} with "%{_p}%"
+        replace "%%message%%" in {_msg2} with "%{_txt}%"
+        send "%{_msg2}%" to {_b}
+
+function announceFriends(p: player, announce: text):
+    size of {IF::arkadaslar::%{_p}%::*} <= 1:
+        send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.not-enough-friends"" from ""messages""%" to {_p}
+    else:
+        set {_format} to yaml value "Chat Format.Player-Announce-Friends" from "config"
+        replace "%%message%%" in {_format} with "%{_announce}%"
+        replace "%%player%%" in {_format} with "%{_p}%"
+        loop {IF::arkadaslar::%{_p}%::*}:
+            send "%{_format}%" to loop-value
+
+function requestsGUI(p: player):
+    size of {IF::requests::%{_p}%::*} = 0:
+        send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-dont-have-any-request"" from ""messages""%" to {_p}
+    else:
+        set {_size} to yaml value "GUI.1.Size" from "gui"
+        set {_name} to yaml value "GUI.1.Name" from "gui"
+        set {_glass::name} to yaml value "GUI.1.Items.Glass Pane.ID" from "gui"
+        set {_glass::ditem} to yaml value "GUI.1.Items.Glass Pane.Item" from "gui" parsed as item type
+        set {_friends::name} to yaml value "GUI.1.Items.All Friends.ID" from "gui"
+        set {_friends::ditem} to yaml value "GUI.1.Items.All Friends.Item" from "gui" parsed as item type
+        set {_friends::slot} to yaml value "GUI.1.Items.All Friends.Slot" from "gui"
+        set {_friends::lore::*} to yaml list "GUI.1.Items.All Friends.Lore" from "gui"
+        set {_request::name} to yaml value "GUI.1.Items.Request.ID" from "gui"
+        set {_request::ditem} to yaml value "GUI.1.Items.Request.Item" from "gui" parsed as item type
+        set {_request::lore::*} to yaml list "GUI.1.Items.Request.Lore" from "gui"
+        open virtual chest with size {_size} named {_name} to {_p}
+        wait a tick
+        if yaml value "GUI.1.Items.Glass Pane.Glowing" from "gui" = true:
+            make gui slot (integers between 44 and 53) of {_p} with glowing {_glass::ditem} named {_glass::name}
+        else:
+            make gui slot (integers between 44 and 53) of {_p} with {_glass::ditem} named {_glass::name}
+        set {_s} to size of {IF::arkadaslar::%{_p}%::*}
+        replace "%%all_friends%%" in {_friends::lore::*} with "%{_s}%"
+        if yaml value "GUI.1.Items.All Friends.Glowing" from "gui" = true:
+            make gui slot {_friends::slot} of {_p} with (glowing {_friends::ditem} named {_friends::name} with lore colored join {_friends::lore::*} with "||") to run function friendsGUI({_p})
+        else:
+            make gui slot {_friends::slot} of {_p} with ({_friends::ditem} named {_friends::name} with lore colored join {_friends::lore::*} with "||") to run function friendsGUI({_p})
+        set {_return} to -1
+        loop {IF::requests::%{_p}%::*}:
+            set {_amount} to size of {IF::arkadaslar::%loop-value%::*}
+            replace "%%player_name%%" in {_request::name} with "%loop-value%"
+            replace "%%request_time%%" in {_request::lore::*} with "%{IF::requestTime::%{_p}%::%loop-value%}%"
+            replace "%%player_friends%%" in {_request::lore::*} with "%{_amount}%"
+            if yaml value "GUI.1.Items.Request.Glowing" from "gui" = true:
+                make gui slot {_return} of {_p} with (glowing {_request::ditem} named {_request::name} with lore colored join {_request::lore::*} with "||") to run:
+                    if "%click type%" = "left mouse button":
+                        close {_p}'s inventory
+                        acceptRequest({_p}, loop-value)
+                    else if "%click type%" = "right mouse button":
+                        close {_p}'s inventory
+                        ignoreRequest({_p}, loop-value)
+            else:
+                make gui slot {_return} of {_p} with ({_request::ditem} named {_request::name} with lore colored join {_request::lore::*} with "||") to run:
+                    if "%click type%" = "left mouse button":
+                        close {_p}'s inventory
+                        acceptRequest({_p}, loop-value)
+                    else if "%click type%" = "right mouse button":
+                        close {_p}'s inventory
+                        ignoreRequest({_p}, loop-value)
+            add 1 to {_return}
+
+function friendsGUI(p: player):
+    size of {IF::arkadaslar::%{_p}%::*} = 0:
+        send "%yaml value ""Prefix"" from ""messages""% %yaml value ""Messages.you-dont-have-any-friend"" from ""messages""%" to {_p}
+    else:
+        set {_name} to yaml value "GUI.0.Name" from "gui"
+        set {_size} to yaml value "GUI.0.Size" from "gui"
+        set {_glass::name} to yaml value "GUI.0.Items.Glass Pane.ID" from "gui"
+        set {_glass::ditem} to yaml value "GUI.0.Items.Glass Pane.Item" from "gui" parsed as item type
+        set {_requests::name} to yaml value "GUI.0.Items.Friend Requests.ID" from "gui"
+        set {_requests::slot} to yaml value "GUI.0.Items.Friend Requests.Slot" from "gui"
+        set {_requests::ditem} to yaml value "GUI.0.Items.Friend Requests.Item" from "gui" parsed as item type
+        set {_requests::lore::*} to yaml list "GUI.0.Items.Friend Requests.Lore" from "gui"
+        set {_head::name} to yaml value "GUI.0.Items.Player Head.ID" from "gui"
+        set {_head::lore::*} to yaml list "GUI.0.Items.Player Head.Lore" from "gui"
+        open virtual chest with size {_size} named {_name} to {_p}
+        wait a tick
+        if yaml value "GUI.0.Items.Glass Pane.Glowing" from "gui" = true:
+            make gui slot (integers between 44 and 53) of {_p} with glowing {_glass::ditem} named {_glass::name}
+        else:
+            make gui slot (integers between 44 and 53) of {_p} with {_glass::ditem} named {_glass::name}
+        set {_amount} to size of {IF::requests::%{_p}%::*}
+        replace "%%friend_requests%%" in {_requests::lore::*} with "%{_amount}%"
+        if yaml value "GUI.0.Items.Friend Requests.Glowing" from "gui" = true:
+            make gui slot {_requests::slot} of {_p} with (glowing {_requests::ditem} named {_requests::name} with lore colored join {_requests::lore::*} with "||") to run function requestsGUI({_p})
+        else:
+            make gui slot {_requests::slot} of {_p} with ({_requests::ditem} named {_requests::name} with lore colored join {_requests::lore::*} with "||") to run function requestsGUI({_p})
+        set {_return} to -1
+        loop {IF::arkadaslar::%{_p}%::*}:
+            if loop-value is online:
+                replace "%%player_status%%" in {_head::lore::*} with "&aOnline"
+            else:
+                replace "%%player_status%%" in {_head::lore::*} with "&cOffline"
+            replace "%%player_name%%" in {_head::name} with "%loop-value%"
+            replace "%%player_last_entry%%" in {_head::lore::*} with "%{IF::lastEntry::%loop-value%}%"
+            if yaml value "GUI.0.Items.Player Head.Glowing" from "gui" = true:
+                make gui slot {_return} of {_p} with (glowing loop-value's skull named {_head::name} with lore colored join {_head::lore::*} with "||") to run function deleteFriend({_p}, loop-value)
+            else:
+                make gui slot {_return} of {_p} with (loop-value's skull named {_head::name} with lore colored join {_head::lore::*} with "||") to run function deleteFriend({_p}, loop-value)
+            add 1 to {_return}
+
+# -----------> Diğer <------------
+
+
+on chat:
+    if {IF::hepDuyuru::%player%} = true:
+        cancel event
+        announceFriends(player, "%message%")
+    else:
+        stop
+
+
+# --------------------------------
